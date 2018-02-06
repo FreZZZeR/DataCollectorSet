@@ -991,7 +991,7 @@ function Write-Log
    Using without naming parameters with severity level Error
 .EXAMPLE
    wl "Test message"
-   Short variant using the function (only for PowerShell 5 and later)
+   Short variant using the function (only for PowerShell v5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("wl")]
