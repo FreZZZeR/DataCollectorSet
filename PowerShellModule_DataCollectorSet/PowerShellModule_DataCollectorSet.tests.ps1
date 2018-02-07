@@ -1,13 +1,16 @@
 #
 # This is a PowerShell Unit Test file.
-# You need a unit test framework such as Pester to run PowerShell Unit tests. 
-# You can download Pester from http://go.microsoft.com/fwlink/?LinkID=534084
 #
-
-Describe "Get-Function" {
-	Context "Function Exists" {
-		It "Should Return" {
-		
-		}
+Describe "Test Function Start-DataCollectorSet" 
+{
+	It "Should Return Status 1" 
+	{
+		$DCSName = "Test"
+		$Computer = "localhost"
+		Start-DataCollectorSet -CN $Computer -DCSName $DCSName -Force
+		$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
+		$PerfMonDataCollectorSet.Query($DCSName, $Computer)
+		$Result = $PerfMonDataCollectorSet.Status()
+		$Result | Should Be "1"
 	}
 }

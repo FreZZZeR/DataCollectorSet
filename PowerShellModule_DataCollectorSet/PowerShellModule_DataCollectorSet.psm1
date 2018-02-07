@@ -1,6 +1,7 @@
 <#
 Windows PowerShell Performance Monitor Data Collection Set Module
 This module contains a set of wrapper scripts that enable a user to start, stop, add and remove Data Collector Set in Performance Monitor
+Some changes were added
 #>
 #
 #FUNCTIONS
@@ -26,7 +27,7 @@ function Start-DataCollectorSet
    Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Start-DCS server-test2 Memory
-   Short variant using the function (only for PowerShell v 5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("Start-DCS")]
@@ -220,7 +221,7 @@ function Stop-DataCollectorSet
    Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Stop-DCS server-test2 Memory
-   Short variant using the function (only for PowerShell 5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("Stop-DCS")]
@@ -380,7 +381,7 @@ function Add-DataCollectorSet
    Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Add-DCS server-test2 Memory "C:\test.xml"
-   Short variant using the function (only for PowerShell 5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("Add-DCS")]
@@ -780,7 +781,7 @@ function Remove-DataCollectorSet
    Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Remove-DCS server-test2 Memory
-   Short variant using the function (only for PowerShell 5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("Remove-DCS")]
@@ -991,7 +992,7 @@ function Write-Log
    Using without naming parameters with severity level Error
 .EXAMPLE
    wl "Test message"
-   Short variant using the function (only for PowerShell v5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("wl")]
