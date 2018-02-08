@@ -983,7 +983,7 @@ function Write-Log
 .PARAMETER Path
    Log-file path
 .PARAMETER Level
-   Severity level ("Information", "Warning", "Error")
+   Severity level ("Success", "Information", "Warning", "Error")
 .EXAMPLE
    Write-Log -Message "This message will written to $Path with date-time before text with severity level $Level" -Level "Error" -Path "C:\test.log"
    Full using
