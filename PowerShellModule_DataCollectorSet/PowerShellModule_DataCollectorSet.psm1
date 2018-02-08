@@ -24,7 +24,7 @@ function Start-DataCollectorSet
    Start-DataCollectorSet -ComputerName server-test1 -DCSName Proccessor_Time -LogFile \\server-test1\logs\ps\dcs\dcs.log
 .EXAMPLE
    Start-DataCollectorSet -CN server-test1 -DCSName Disk_Time
-   Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
+   Log will be written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Start-DCS server-test2 Memory
    Short variant using the function (only for PowerShell version 5 and later)
@@ -218,7 +218,7 @@ function Stop-DataCollectorSet
    Stop-DataCollectorSet -Computer server-test1 -DCSName Proccessor_Time -LogFile \\server-test1\logs\ps\dcs\dcs.log
 .EXAMPLE
    Stop-DataCollectorSet -Computer server-test1 -DCSName Disk_Time
-   Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
+   Log will be written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Stop-DCS server-test2 Memory
    Short variant using the function (only for PowerShell version 5 and later)
@@ -378,7 +378,7 @@ function Add-DataCollectorSet
    Add-DataCollectorSet -ComputerName server-test1 -DCSName Proccessor_Time -DCSXMLTemplate "C:\test.xml" -LogFile \\server-test1\logs\ps\dcs\dcs.log
 .EXAMPLE
    Add-DataCollectorSet -CN server-test1 -DCSName Disk_Time -XML "C:\test.xml"
-   Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
+   Log will be written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Add-DCS server-test2 Memory "C:\test.xml"
    Short variant using the function (only for PowerShell version 5 and later)
@@ -778,7 +778,7 @@ function Remove-DataCollectorSet
    Remove-DataCollectorSet -ComputerName server-test1 -DCSName Proccessor_Time -LogFile \\server-test1\logs\ps\dcs\dcs.log
 .EXAMPLE
    Remove-DataCollectorSet -CN server-test1 -DCSName Disk_Time
-   Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
+   Log will be written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Remove-DCS server-test2 Memory
    Short variant using the function (only for PowerShell version 5 and later)
@@ -985,10 +985,10 @@ function Write-Log
 .PARAMETER Level
    Severity level ("Success", "Information", "Warning", "Error")
 .EXAMPLE
-   Write-Log -Message "This message will written to $Path with date-time before text with severity level $Level" -Level "Error" -Path "C:\test.log"
+   Write-Log -Message "This message will be written to $Path with date-time before text with severity level $Level" -Level "Error" -Path "C:\test.log"
    Full using
 .EXAMPLE
-   Write-Log "Test message will written to $Path with severity Error" Error
+   Write-Log "Test message will be written to $Path with severity Error" Error
    Using without naming parameters with severity level Error
 .EXAMPLE
    wl "Test message"
