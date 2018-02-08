@@ -1,6 +1,7 @@
 <#
 Windows PowerShell Performance Monitor Data Collection Set Module
 This module contains a set of wrapper scripts that enable a user to start, stop, add and remove Data Collector Set in Performance Monitor
+Some changes were added in module
 #>
 #
 #FUNCTIONS
@@ -23,10 +24,10 @@ function Start-DataCollectorSet
    Start-DataCollectorSet -ComputerName server-test1 -DCSName Proccessor_Time -LogFile \\server-test1\logs\ps\dcs\dcs.log
 .EXAMPLE
    Start-DataCollectorSet -CN server-test1 -DCSName Disk_Time
-   Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
+   Log will be written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Start-DCS server-test2 Memory
-   Short variant using the function (only for PowerShell v 5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("Start-DCS")]
@@ -217,10 +218,10 @@ function Stop-DataCollectorSet
    Stop-DataCollectorSet -Computer server-test1 -DCSName Proccessor_Time -LogFile \\server-test1\logs\ps\dcs\dcs.log
 .EXAMPLE
    Stop-DataCollectorSet -Computer server-test1 -DCSName Disk_Time
-   Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
+   Log will be written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Stop-DCS server-test2 Memory
-   Short variant using the function (only for PowerShell 5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("Stop-DCS")]
@@ -377,10 +378,10 @@ function Add-DataCollectorSet
    Add-DataCollectorSet -ComputerName server-test1 -DCSName Proccessor_Time -DCSXMLTemplate "C:\test.xml" -LogFile \\server-test1\logs\ps\dcs\dcs.log
 .EXAMPLE
    Add-DataCollectorSet -CN server-test1 -DCSName Disk_Time -XML "C:\test.xml"
-   Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
+   Log will be written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Add-DCS server-test2 Memory "C:\test.xml"
-   Short variant using the function (only for PowerShell 5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("Add-DCS")]
@@ -777,10 +778,10 @@ function Remove-DataCollectorSet
    Remove-DataCollectorSet -ComputerName server-test1 -DCSName Proccessor_Time -LogFile \\server-test1\logs\ps\dcs\dcs.log
 .EXAMPLE
    Remove-DataCollectorSet -CN server-test1 -DCSName Disk_Time
-   Log will written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
+   Log will be written to default path to %userprofile%\appdata\local\temp\PowerShell_Module_DCS_$CurrentDate.log
 .EXAMPLE
    Remove-DCS server-test2 Memory
-   Short variant using the function (only for PowerShell 5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("Remove-DCS")]
@@ -982,16 +983,16 @@ function Write-Log
 .PARAMETER Path
    Log-file path
 .PARAMETER Level
-   Severity level ("Information", "Warning", "Error")
+   Severity level ("Success", "Information", "Warning", "Error")
 .EXAMPLE
-   Write-Log -Message "This message will written to $Path with date-time before text with severity level $Level" -Level "Error" -Path "C:\test.log"
+   Write-Log -Message "This message will be written to $Path with date-time before text with severity level $Level" -Level "Error" -Path "C:\test.log"
    Full using
 .EXAMPLE
-   Write-Log "Test message will written to $Path with severity Error" Error
+   Write-Log "Test message will be written to $Path with severity Error" Error
    Using without naming parameters with severity level Error
 .EXAMPLE
    wl "Test message"
-   Short variant using the function (only for PowerShell v5 and later)
+   Short variant using the function (only for PowerShell version 5 and later)
 #>
 	[CmdletBinding ()]
 	[Alias("wl")]
@@ -1004,8 +1005,8 @@ function Write-Log
 	{
 		If (!$Path) 
 		{
-		$Date = Get-Date -UFormat %Y.%m.%d
-		$Path = "$env:TEMP\PowerShell_Module_DCS_$Date.log"
+			$Date = Get-Date -UFormat %Y.%m.%d
+			$Path = "$env:TEMP\PowerShell_Module_DCS_$Date.log"
 		}
 		$DateWrite = Get-Date -Format FileDateTime
 		$Line = "{0} ***{1}*** {2}" -f $DateWrite, $Level.ToUpper(), $Message
