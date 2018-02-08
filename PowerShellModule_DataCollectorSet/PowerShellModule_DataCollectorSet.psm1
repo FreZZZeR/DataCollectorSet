@@ -1005,8 +1005,8 @@ function Write-Log
 	{
 		If (!$Path) 
 		{
-		$Date = Get-Date -UFormat %Y.%m.%d
-		$Path = "$env:TEMP\PowerShell_Module_DCS_$Date.log"
+			$Date = Get-Date -UFormat %Y.%m.%d
+			$Path = "$env:TEMP\PowerShell_Module_DCS_$Date.log"
 		}
 		$DateWrite = Get-Date -Format FileDateTime
 		$Line = "{0} ***{1}*** {2}" -f $DateWrite, $Level.ToUpper(), $Message
