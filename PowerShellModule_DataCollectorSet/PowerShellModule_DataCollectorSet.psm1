@@ -13,8 +13,8 @@ function Start-DataCollectorSet
    Start a Data Collector Set (DCS) in local or remote computer
 .DESCRIPTION
    PowerShell version 4 or higher
-   Start a DCS in local or remote computer. If DCS is working it will be restarted.
-.PARAMETER Computer
+   Start a DCS in local or remote computer. If DCS is already working it will be restarted.
+.PARAMETER ComputerName
    Local or remote computer name. Use FQDN, NET-BIOS name or "localhost" for local computer
 .PARAMETER DCSName
    Data Collector Set name
@@ -130,7 +130,7 @@ function Stop-DataCollectorSet
    PowerShell version 4 or higher
    Stop a DCS in local or remote computer.
    Logging to file temporary is not available
-.PARAMETER Computer
+.PARAMETER ComputerName
    Local or remote computer name. Use FQDN, NET-BIOS name or "localhost" for local computer
 .PARAMETER DCSName
    Data Collector Set name
@@ -228,7 +228,7 @@ function Add-DataCollectorSet
    PowerShell version 4 or higher
    Add a DCS in local or remote computer. If the DCS is already present, it will be stopped, removed and added again, when -Force flag is present.
    Logging to file temporary is not available
-.PARAMETER Computer
+.PARAMETER ComputerName
    Local or remote computer name. Use FQDN, NET-BIOS name or "localhost" for local computer
 .PARAMETER DCSName
    Data Collector Set name
@@ -451,7 +451,7 @@ function Remove-DataCollectorSet
    PowerShell version 4 or higher
    Remove a DCS in local or remote computer. If the DCS is working at the moment, it will be stopped and then removed.
    Logging to file temporary is not available
-.PARAMETER Computer
+.PARAMETER ComputerName
    Local or remote computer name. Use FQDN, NET-BIOS name or "localhost" for local computer
 .PARAMETER DCSName
    Data Collector Set name
