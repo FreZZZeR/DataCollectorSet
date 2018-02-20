@@ -45,154 +45,76 @@ function Start-DataCollectorSet
 			{
 				$Computer = "$env:COMPUTERNAME"
 			}
-			If ([int]::Parse(($(Get-WmiObject Win32_OperatingSystem -ComputerName $Computer).Version).Split("\.")[0]) -ge "10") 
+			$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
+			Write-Host "Trying to connect to computer `"$Computer`"..."
+			Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
+			$PerfMonDataCollectorSet.Query($DCSName, $Computer)
+			If ($? -eq $true) 
 			{
-				$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
-				Write-Host "Trying to connect to computer `"$Computer`"..."
-				Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-				$PerfMonDataCollectorSet.Query($DCSName, $Computer)
-				If ($? -eq $true) 
+				Write-Host "Successfully! Connection is established!"
+				Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
+				Write-Host "Checking Data Collector Set `"$DCSName`" status..."
+				Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
+				If ($PerfMonDataCollectorSet.Status -eq "1") 
 				{
-					Write-Host "Successfully! Connection is established!"
-					Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-					Write-Host "Checking Data Collector Set `"$DCSName`" status..."
-					Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
-					If ($PerfMonDataCollectorSet.Status() -eq "1") 
+					Write-Host "Data Collector Set `"$DCSName`" is working now."
+					Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
+					Write-Host "Data Collector Set `"$DCSName`" will be restarted."
+					Write-Log -Message "Data Collector Set `"$DCSName`" will be restarted." -Path $LogFile
+					$PerfMonDataCollectorSet.Stop($false)
+					While ($PerfMonDataCollectorSet.Status -eq "1") 
 					{
-						Write-Host "Data Collector Set `"$DCSName`" is working now."
-						Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" will be restarted."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be restarted." -Path $LogFile
-						$PerfMonDataCollectorSet.Stop($false)
-						While ($PerfMonDataCollectorSet.Status() -eq "1") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is stopping..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been stopped."
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped." -Path $LogFile
-						$PerfMonDataCollectorSet.Start($false)
-						While ($PerfMonDataCollectorSet.Status() -eq "0") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is starting..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is starting..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -Level Success  -Path $LogFile
+						Start-Sleep -Milliseconds 500
+						Write-Host "Data Collector Set `"$DCSName`" is stopping..."
+						Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
 					}
-					Else 
+					Write-Host "Data Collector Set `"$DCSName`" has been stopped."
+					Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped." -Path $LogFile
+					$PerfMonDataCollectorSet.Start($false)
+					While ($PerfMonDataCollectorSet.Status -eq "0") 
 					{
-						Write-Host "Data Collector Set `"$DCSName`" will be started."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be started." -Path $LogFile
-						$PerfMonDataCollectorSet.Start($false)
-						While ($PerfMonDataCollectorSet.Status() -eq "0") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is starting..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is starting..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -Level Success  -Path $LogFile
+						Start-Sleep -Milliseconds 500
+						Write-Host "Data Collector Set `"$DCSName`" is starting..."
+						Write-Log -Message "Data Collector Set `"$DCSName`" is starting..." -Path $LogFile
 					}
+					Write-Host "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
+					Write-Log -Message "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -Level Success -Path $LogFile
 				}
 				Else 
 				{
-					Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
-					Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
-					Write-Host "Trying to connect to computer `"$Computer`"..."
-					Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-					$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
-					If ($? -eq $true) 
+					Write-Host "Data Collector Set `"$DCSName`" will be started."
+					Write-Log -Message "Data Collector Set `"$DCSName`" will be started." -Path $LogFile
+					$PerfMonDataCollectorSet.Start($false)
+					While ($PerfMonDataCollectorSet.Status -eq "0") 
 					{
-						Write-Host "Successfully! Connection is established!"
-						Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-						Write-Host "Check the Data Collector Set name!" -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Check the Data Collector Set name!" -Level Warning -Path $LogFile
-						Write-Host "Error! Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -Level Error -Path $LogFile
+						Start-Sleep -Milliseconds 500
+						Write-Host "Data Collector Set `"$DCSName`" is starting..."
+						Write-Log -Message "Data Collector Set `"$DCSName`" is starting..." -Path $LogFile
 					}
-					Else 
-					{
-						Write-Host "Error! Connection is NOT established with computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Connection is NOT established with computer `"$Computer`"!" -Level Error -Path $LogFile
-					}
+					Write-Host "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
+					Write-Log -Message "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -Level Success -Path $LogFile
 				}
 			}
 			Else 
 			{
-				$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
+				Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
+				Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
 				Write-Host "Trying to connect to computer `"$Computer`"..."
 				Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-				$PerfMonDataCollectorSet.Query($DCSName, $Computer)
+				$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
 				If ($? -eq $true) 
 				{
 					Write-Host "Successfully! Connection is established!"
 					Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-					Write-Host "Checking Data Collector Set `"$DCSName`" status..."
-					Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
-					If ($PerfMonDataCollectorSet.Status -eq "1") 
-					{
-						Write-Host "Data Collector Set `"$DCSName`" is working now."
-						Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" will be restarted."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be restarted." -Path $LogFile
-						$PerfMonDataCollectorSet.Stop($false)
-						While ($PerfMonDataCollectorSet.Status -eq "1") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is stopping..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been stopped."
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped." -Path $LogFile
-						$PerfMonDataCollectorSet.Start($false)
-						While ($PerfMonDataCollectorSet.Status -eq "0") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is starting..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is starting..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -Level Success -Path $LogFile
-					}
-					Else 
-					{
-						Write-Host "Data Collector Set `"$DCSName`" will be started."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be started." -Path $LogFile
-						$PerfMonDataCollectorSet.Start($false)
-						While ($PerfMonDataCollectorSet.Status -eq "0") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is starting..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is starting..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been started on computer `"$Computer`"." -Level Success -Path $LogFile
-					}
+					Write-Host "Check the Data Collector Set name!" -ForegroundColor Yellow -BackgroundColor DarkBlue
+					Write-Log -Message "Check the Data Collector Set name!" -Level Warning -Path $LogFile
+					Write-Host "Error! Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+					Write-Log -Message "Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -Level Error -Path $LogFile
 				}
 				Else 
 				{
-					Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
-					Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
-					Write-Host "Trying to connect to computer `"$Computer`"..."
-					Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-					$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
-					If ($? -eq $true) 
-					{
-						Write-Host "Successfully! Connection is established!"
-						Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-						Write-Host "Check the Data Collector Set name!" -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Check the Data Collector Set name!" -Level Warning -Path $LogFile
-						Write-Host "Error! Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -Level Error -Path $LogFile
-					}
-					Else 
-					{
-						Write-Host "Error! Connection is NOT established with computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Connection is NOT established with computer `"$Computer`"!" -Level Error -Path $LogFile
-					}
+					Write-Host "Error! Connection is NOT established with computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+					Write-Log -Message "Connection is NOT established with computer `"$Computer`"!" -Level Error -Path $LogFile
 				}
 			}
 		}
@@ -239,118 +161,58 @@ function Stop-DataCollectorSet
 			{
 				$Computer = "$env:COMPUTERNAME"
 			}
-			If ([int]::Parse(($(Get-WmiObject Win32_OperatingSystem -ComputerName $Computer).Version).Split("\.")[0]) -ge "10") 
+			$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
+			Write-Host "Trying to connect to computer `"$Computer`"..."
+			Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
+			$PerfMonDataCollectorSet.Query($DCSName, $Computer)
+			If ($? -eq $true) 
 			{
-				$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
-				Write-Host "Trying to connect to computer `"$Computer`"..."
-				Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-				$PerfMonDataCollectorSet.Query($DCSName, $Computer)
-				If ($? -eq $true) 
+				Write-Host "Successfully! Connection is established!"
+				Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
+				Write-Host "Checking Data Collector Set `"$DCSName`" status..."
+				Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
+				If ($PerfMonDataCollectorSet.Status -eq "1") 
 				{
-					Write-Host "Successfully! Connection is established!"
-					Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-					Write-Host "Checking Data Collector Set `"$DCSName`" status..."
-					Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
-					If ($PerfMonDataCollectorSet.Status() -eq "1") 
+					Write-Host "Data Collector Set `"$DCSName`" is working now."
+					Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
+					Write-Host "Data Collector Set `"$DCSName`" will be stopped."
+					Write-Log -Message "Data Collector Set `"$DCSName`" will be stopped." -Path $LogFile
+					$PerfMonDataCollectorSet.Stop($false)
+					While ($PerfMonDataCollectorSet.Status -eq "1") 
 					{
-						Write-Host "Data Collector Set `"$DCSName`" is working now."
-						Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" will be stopped."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be stopped." -Path $LogFile
-						$PerfMonDataCollectorSet.Stop($false)
-						While ($PerfMonDataCollectorSet.Status() -eq "1") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is stopping..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been stopped on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped on computer `"$Computer`"." -Level Success -Path $LogFile
+						Start-Sleep -Milliseconds 500
+						Write-Host "Data Collector Set `"$DCSName`" is stopping..."
+						Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
 					}
-					Else 
-					{
-						Write-Host "Data Collector Set `"$DCSName`" is not working now on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" is not working now on computer `"$Computer`"." -Level Success -Path $LogFile
-					}
+					Write-Host "Data Collector Set `"$DCSName`" has been stopped on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
+					Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped on computer `"$Computer`"." -Level Success -Path $LogFile
 				}
 				Else 
 				{
-					Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
-					Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
-					Write-Host "Trying to connect to computer `"$Computer`"..."
-					Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-					$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
-					If ($? -eq $true) 
-					{
-						Write-Host "Successfully! Connection is established!"
-						Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-						Write-Host "Check the Data Collector Set name!" -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Check the Data Collector Set name!" -Level Warning -Path $LogFile
-						Write-Host "Error! Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -Level Error  -Path $LogFile
-					}
-					Else 
-					{
-						Write-Host "Error! Connection is NOT established with computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Connection is NOT established with computer `"$Computer`"!" -Level Error -Path $LogFile
-					}
+					Write-Host "Data Collector Set `"$DCSName`" is not working now on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
+					Write-Log -Message "Data Collector Set `"$DCSName`" is not working now on computer `"$Computer`"." -Level Success -Path $LogFile
 				}
 			}
 			Else 
 			{
-				$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
+				Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
+				Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
 				Write-Host "Trying to connect to computer `"$Computer`"..."
 				Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-				$PerfMonDataCollectorSet.Query($DCSName, $Computer)
+				$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
 				If ($? -eq $true) 
 				{
 					Write-Host "Successfully! Connection is established!"
 					Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-					Write-Host "Checking Data Collector Set `"$DCSName`" status..."
-					Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
-					If ($PerfMonDataCollectorSet.Status -eq "1") 
-					{
-						Write-Host "Data Collector Set `"$DCSName`" is working now."
-						Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" will be stopped."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be stopped." -Path $LogFile
-						$PerfMonDataCollectorSet.Stop($false)
-						While ($PerfMonDataCollectorSet.Status -eq "1") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is stopping..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been stopped on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped on computer `"$Computer`"." -Level Success -Path $LogFile
-					}
-					Else 
-					{
-						Write-Host "Data Collector Set `"$DCSName`" is not working now on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" is not working now on computer `"$Computer`"." -Level Success -Path $LogFile
-					}
+					Write-Host "Check the Data Collector Set name!" -ForegroundColor Yellow -BackgroundColor DarkBlue
+					Write-Log -Message "Check the Data Collector Set name!" -Level Warning -Path $LogFile
+					Write-Host "Error! Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+					Write-Log -Message "Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -Level Error -Path $LogFile
 				}
 				Else 
 				{
-					Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
-					Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
-					Write-Host "Trying to connect to computer `"$Computer`"..."
-					Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-					$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
-					If ($? -eq $true) 
-					{
-						Write-Host "Successfully! Connection is established!"
-						Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-						Write-Host "Check the Data Collector Set name!" -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Check the Data Collector Set name!" -Level Warning -Path $LogFile
-						Write-Host "Error! Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -Level Error -Path $LogFile
-					}
-					Else 
-					{
-						Write-Host "Error! Connection is NOT established with computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Connection is NOT established with computer `"$Computer`"!" -Level Error -Path $LogFile
-					}
+					Write-Host "Error! Connection is NOT established with computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+					Write-Log -Message "Connection is NOT established with computer `"$Computer`"!" -Level Error -Path $LogFile
 				}
 			}
 		}
@@ -402,357 +264,178 @@ function Add-DataCollectorSet
 			{
 				$Computer = "$env:COMPUTERNAME"
 			}
-			If ([int]::Parse(($(Get-WmiObject Win32_OperatingSystem -ComputerName $Computer).Version).Split("\.")[0]) -ge "10") 
+			$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
+			Write-Host "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..."
+			Write-Log -Message "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..." -Path $LogFile
+			$PerfMonDataCollectorSet.Query($DCSName, $Computer)
+			If ($? -eq $true) 
 			{
-				$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
-				Write-Host "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..."
-				$PerfMonDataCollectorSet.Query($DCSName, $Computer)
-				If ($? -eq $true) 
+				Write-Host "Successfully! Connection is established!"
+				Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
+				Write-Host "Data Collector Set `"$DCSName`" was found."
+				Write-Log -Message "Data Collector Set `"$DCSName`" was found." -Path $LogFile
+				Write-Host "Data Collector Set `"$DCSName`" is already present."
+				Write-Log -Message "Data Collector Set `"$DCSName`" is already present." -Path $LogFile
+				If ($Force) 
 				{
-					Write-Host "Successfully! Connection is established!"
-					Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-					Write-Host "Data Collector Set `"$DCSName`" was found."
-					Write-Log -Message "Data Collector Set `"$DCSName`" was found." -Path $LogFile
-					Write-Host "Data Collector Set `"$DCSName`" is already present."
-					Write-Log -Message "Data Collector Set `"$DCSName`" is already present." -Path $LogFile
-					If ($Force) 
+					Write-Host "Checking Data Collector Set `"$DCSName`" status..."
+					Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
+					If ($PerfMonDataCollectorSet.Status -eq "1") 
 					{
-						Write-Host "Checking Data Collector Set `"$DCSName`" status..."
-						Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
-						If ($PerfMonDataCollectorSet.Status() -eq "1") 
+						Write-Host "Data Collector Set `"$DCSName`" is working now."
+						Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
+						Write-Host "Data Collector Set `"$DCSName`" will be stopped and then removed."
+						Write-Log -Message "Data Collector Set `"$DCSName`" will be stopped and then removed." -Path $LogFile
+						$PerfMonDataCollectorSet.Stop($false)
+						While ($PerfMonDataCollectorSet.Status -eq "1") 
 						{
-							Write-Host "Data Collector Set `"$DCSName`" is working now."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
-							Write-Host "Data Collector Set `"$DCSName`" will be stopped and then removed."
-							Write-Log -Message "Data Collector Set `"$DCSName`" will be stopped and then removed." -Path $LogFile
-							$PerfMonDataCollectorSet.Stop($false)
-							While ($PerfMonDataCollectorSet.Status() -eq "1") 
+							Start-Sleep -Milliseconds 500
+							Write-Host "Data Collector Set `"$DCSName`" is stopping..."
+							Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
+						}
+						Write-Host "Data Collector Set `"$DCSName`" has been stopped."
+						Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped." -Path $LogFile
+						Write-Host "Data Collector Set `"$DCSName`" removing..."
+						Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
+						$PerfMonDataCollectorSet.Delete()
+						If ($? -eq $true)
+						{
+							Write-Host "Data Collector Set `"$DCSName`" has been removed."
+							Write-Log -Message "Data Collector Set `"$DCSName`" has been removed." -Path $LogFile
+							Write-Host "Data Collector Set `"$DCSName`" adding..."
+							Write-Log -Message "Data Collector Set `"$DCSName`" adding..." -Path $LogFile
+							Write-Host "Data Collector Set `"$DCSName`" adding XML-data..."
+							Write-Log -Message "Data Collector Set `"$DCSName`" adding XML-data..." -Path $LogFile
+							$PerfMonDataCollectorSet.SetXml($XMLData)
+							If ($? -eq $true) 
 							{
-								Start-Sleep -Milliseconds 500
-								Write-Host "Data Collector Set `"$DCSName`" is stopping..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
-							}
-							Write-Host "Data Collector Set `"$DCSName`" has been stopped."
-							Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped." -Path $LogFile
-							Write-Host "Data Collector Set `"$DCSName`" removing..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
-							$PerfMonDataCollectorSet.Delete()
-							If ($? -eq $true)
-							{
-								Write-Host "Data Collector Set `"$DCSName`" has been removed."
-								Write-Log -Message "Data Collector Set `"$DCSName`" has been removed." -Path $LogFile
-								Write-Host "Data Collector Set `"$DCSName`" adding..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" adding..." -Path $LogFile
-								Write-Host "Data Collector Set `"$DCSName`" adding XML-data..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" adding XML-data..." -Path $LogFile
-								$PerfMonDataCollectorSet.SetXml($XMLData)
-								If ($? -eq $true) 
+								Write-Host "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object."
+								Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object." -Path $LogFile
+								Write-Host "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..."
+								Write-Log -Message "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..." -Path $LogFile
+								$null = $PerfMonDataCollectorSet.Commit("$DCSName", $Computer, 0x0003)
+								If ($? -eq $true)
 								{
-									Write-Host "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object."
-									Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object." -Path $LogFile
-									Write-Host "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..."
-									Write-Log -Message "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..." -Path $LogFile
-									$null = $PerfMonDataCollectorSet.Commit("$DCSName", $Computer, 0x0003)
-									If ($? -eq $true)
-									{
-										Write-Host "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-										Write-Log -Message "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -Level Success -Path $LogFile
-									}
-									Else 
-									{
-										Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-										Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -Level Error -Path $LogFile
-									}
+									Write-Host "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
+									Write-Log -Message "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -Level Success -Path $LogFile
 								}
 								Else 
 								{
-									Write-Host "Error! XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -ForegroundColor Red -BackgroundColor DarkBlue
-									Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -Level Error -Path $LogFile
+									Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+									Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -Level Error -Path $LogFile
 								}
 							}
 							Else 
 							{
-								Write-Host "Error! Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-								Write-Log -Message "Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -Level Error -Path $LogFile
+								Write-Host "Error! XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -ForegroundColor Red -BackgroundColor DarkBlue
+								Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -Level Error -Path $LogFile
 							}
 						}
 						Else 
 						{
-							Write-Host "Data Collector Set `"$DCSName`" removing..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
-							$PerfMonDataCollectorSet.Delete()
-							If ($? -eq $true)
-							{
-								Write-Host "Data Collector Set `"$DCSName`" has been removed."
-								Write-Log -Message "Data Collector Set `"$DCSName`" has been removed." -Path $LogFile
-								Write-Host "Data Collector Set `"$DCSName`" adding..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" adding..." -Path $LogFile
-								Write-Host "Data Collector Set `"$DCSName`" adding XML-data..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" adding XML-data..." -Path $LogFile
-								$PerfMonDataCollectorSet.SetXml($XMLData)
-								If ($? -eq $true) 
-								{
-									Write-Host "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object."
-									Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object." -Path $LogFile
-									Write-Host "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..."
-									Write-Log -Message "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..." -Path $LogFile
-									$null = $PerfMonDataCollectorSet.Commit("$DCSName", $Computer, 0x0003)
-									If ($? -eq $true)
-									{
-										Write-Host "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-										Write-Log -Message "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -Level Success -Path $LogFile
-									}
-									Else 
-									{
-										Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-										Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -Level Error -Path $LogFile
-									}
-								}
-								Else 
-								{
-									Write-Host "Error! XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -ForegroundColor Red -BackgroundColor DarkBlue
-									Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -Level Error -Path $LogFile
-								}
-							}
-							Else 
-							{
-								Write-Host "Error! Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-								Write-Log -Message "Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -Level Error -Path $LogFile
-							}
+							Write-Host "Error! Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+							Write-Log -Message "Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -Level Error -Path $LogFile
 						}
 					}
 					Else 
 					{
-						Write-Host "Data Collector Set `"$DCSName`" has been left on computer `"$Computer`"." -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been left on computer `"$Computer`"." -Level Warning -Path $LogFile
-						Write-Host "Use -Force flag for rewriting Data Collector Set `"$DCSName`"" -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Use -Force flag for rewriting Data Collector Set `"$DCSName`"" -Level Warning -Path $LogFile
+						Write-Host "Data Collector Set `"$DCSName`" removing..."
+						Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
+						$PerfMonDataCollectorSet.Delete()
+						If ($? -eq $true)
+						{
+							Write-Host "Data Collector Set `"$DCSName`" has been removed."
+							Write-Log -Message "Data Collector Set `"$DCSName`" has been removed." -Path $LogFile
+							Write-Host "Data Collector Set `"$DCSName`" adding..."
+							Write-Log -Message "Data Collector Set `"$DCSName`" adding..." -Path $LogFile
+							Write-Host "Data Collector Set `"$DCSName`" adding XML-data..."
+							Write-Log -Message "Data Collector Set `"$DCSName`" adding XML-data..." -Path $LogFile
+							$PerfMonDataCollectorSet.SetXml($XMLData)
+							If ($? -eq $true) 
+							{
+								Write-Host "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object."
+								Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object." -Path $LogFile
+								Write-Host "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..."
+								Write-Log -Message "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..." -Path $LogFile
+								$null = $PerfMonDataCollectorSet.Commit("$DCSName", $Computer, 0x0003)
+								If ($? -eq $true)
+								{
+									Write-Host "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
+									Write-Log -Message "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -Level Success -Path $LogFile
+								}
+								Else 
+								{
+									Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+									Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -Level Error -Path $LogFile
+								}
+							}
+							Else 
+							{
+								Write-Host "Error! XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -ForegroundColor Red -BackgroundColor DarkBlue
+								Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -Level Error -Path $LogFile
+							}
+						}
+						Else 
+						{
+							Write-Host "Error! Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+							Write-Log -Message "Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -Level Error -Path $LogFile
+						}
 					}
 				}
 				Else 
 				{
-					Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
-					Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
-					Write-Host "Trying to connect to computer `"$Computer`"..."
-					Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-					$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
-					If ($? -eq $true) 
-					{
-						Write-Host "Successfully! Connection is established!"
-						Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" will be added."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be added." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" adding..."
-						Write-Log -Message "Data Collector Set `"$DCSName`" adding..." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" adding XML-data..."
-						Write-Log -Message "Data Collector Set `"$DCSName`" adding XML-data..." -Path $LogFile
-						$PerfMonDataCollectorSet.SetXml($XMLData)
-						If ($? -eq $true) 
-						{
-							Write-Host "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object."
-							Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object." -Path $LogFile
-							Write-Host "Data Collector Set `"$DCSName`" committing data..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" committing data..." -Path $LogFile
-							$null = $PerfMonDataCollectorSet.Commit("$DCSName", $Computer, 0x0003)
-							If ($? -eq $true)
-							{
-								Write-Host "Data Collector Set `"$DCSName`" has been added on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-								Write-Log -Message "Data Collector Set `"$DCSName`" has been added on computer `"$Computer`"." -Level Success -Path $LogFile
-							}
-							Else 
-							{
-								Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been added!" -ForegroundColor Red -BackgroundColor DarkBlue
-								Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been added!" -Level Error -Path $LogFile
-							}
-						}
-						Else 
-						{
-							Write-Host "Error! XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -ForegroundColor Red -BackgroundColor DarkBlue
-							Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -Level Error -Path $LogFile
-						}
-					}
-					Else 
-					{
-						Write-Host "Error! Connection is NOT established!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Connection is NOT established!" -Level Error -Path $LogFile
-					}
+					Write-Host "Data Collector Set `"$DCSName`" has been left on computer `"$Computer`"." -ForegroundColor Yellow -BackgroundColor DarkBlue
+					Write-Log -Message "Data Collector Set `"$DCSName`" has been left on computer `"$Computer`"." -Level Warning -Path $LogFile
+					Write-Host "Use -Force flag for rewriting Data Collector Set `"$DCSName`"" -ForegroundColor Yellow -BackgroundColor DarkBlue
+					Write-Log -Message "Use -Force flag for rewriting Data Collector Set `"$DCSName`"" -Level Warning -Path $LogFile
 				}
 			}
 			Else 
 			{
-				$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
-				Write-Host "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..."
-				Write-Log -Message "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..." -Path $LogFile
-				$PerfMonDataCollectorSet.Query($DCSName, $Computer)
+				Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
+				Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
+				Write-Host "Trying to connect to computer `"$Computer`"..."
+				Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
+				$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
 				If ($? -eq $true) 
 				{
 					Write-Host "Successfully! Connection is established!"
 					Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-					Write-Host "Data Collector Set `"$DCSName`" was found."
-					Write-Log -Message "Data Collector Set `"$DCSName`" was found." -Path $LogFile
-					Write-Host "Data Collector Set `"$DCSName`" is already present."
-					Write-Log -Message "Data Collector Set `"$DCSName`" is already present." -Path $LogFile
-					If ($Force) 
+					Write-Host "Data Collector Set `"$DCSName`" will be added."
+					Write-Log -Message "Data Collector Set `"$DCSName`" will be added." -Path $LogFile
+					Write-Host "Data Collector Set `"$DCSName`" adding..."
+					Write-Log -Message "Data Collector Set `"$DCSName`" adding..." -Path $LogFile
+					Write-Host "Data Collector Set `"$DCSName`" adding XML-data..."
+					Write-Log -Message "Data Collector Set `"$DCSName`" adding XML-data..." -Path $LogFile
+					$PerfMonDataCollectorSet.SetXml($XMLData)
+					If ($? -eq $true) 
 					{
-						Write-Host "Checking Data Collector Set `"$DCSName`" status..."
-						Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
-						If ($PerfMonDataCollectorSet.Status -eq "1") 
+						Write-Host "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object."
+						Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object." -Path $LogFile
+						Write-Host "Data Collector Set `"$DCSName`" committing data..."
+						Write-Log -Message "Data Collector Set `"$DCSName`" committing data..." -Path $LogFile
+						$null = $PerfMonDataCollectorSet.Commit("$DCSName", $Computer, 0x0003)
+						If ($? -eq $true)
 						{
-							Write-Host "Data Collector Set `"$DCSName`" is working now."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
-							Write-Host "Data Collector Set `"$DCSName`" will be stopped and then removed."
-							Write-Log -Message "Data Collector Set `"$DCSName`" will be stopped and then removed." -Path $LogFile
-							$PerfMonDataCollectorSet.Stop($false)
-							While ($PerfMonDataCollectorSet.Status -eq "1") 
-							{
-								Start-Sleep -Milliseconds 500
-								Write-Host "Data Collector Set `"$DCSName`" is stopping..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
-							}
-							Write-Host "Data Collector Set `"$DCSName`" has been stopped."
-							Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped." -Path $LogFile
-							Write-Host "Data Collector Set `"$DCSName`" removing..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
-							$PerfMonDataCollectorSet.Delete()
-							If ($? -eq $true)
-							{
-								Write-Host "Data Collector Set `"$DCSName`" has been removed."
-								Write-Log -Message "Data Collector Set `"$DCSName`" has been removed." -Path $LogFile
-								Write-Host "Data Collector Set `"$DCSName`" adding..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" adding..." -Path $LogFile
-								Write-Host "Data Collector Set `"$DCSName`" adding XML-data..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" adding XML-data..." -Path $LogFile
-								$PerfMonDataCollectorSet.SetXml($XMLData)
-								If ($? -eq $true) 
-								{
-									Write-Host "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object."
-									Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object." -Path $LogFile
-									Write-Host "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..."
-									Write-Log -Message "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..." -Path $LogFile
-									$null = $PerfMonDataCollectorSet.Commit("$DCSName", $Computer, 0x0003)
-									If ($? -eq $true)
-									{
-										Write-Host "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-										Write-Log -Message "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -Level Success -Path $LogFile
-									}
-									Else 
-									{
-										Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-										Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -Level Error -Path $LogFile
-									}
-								}
-								Else 
-								{
-									Write-Host "Error! XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -ForegroundColor Red -BackgroundColor DarkBlue
-									Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -Level Error -Path $LogFile
-								}
-							}
-							Else 
-							{
-								Write-Host "Error! Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-								Write-Log -Message "Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -Level Error -Path $LogFile
-							}
+							Write-Host "Data Collector Set `"$DCSName`" has been added on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
+							Write-Log -Message "Data Collector Set `"$DCSName`" has been added on computer `"$Computer`"." -Level Success -Path $LogFile
 						}
 						Else 
 						{
-							Write-Host "Data Collector Set `"$DCSName`" removing..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
-							$PerfMonDataCollectorSet.Delete()
-							If ($? -eq $true)
-							{
-								Write-Host "Data Collector Set `"$DCSName`" has been removed."
-								Write-Log -Message "Data Collector Set `"$DCSName`" has been removed." -Path $LogFile
-								Write-Host "Data Collector Set `"$DCSName`" adding..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" adding..." -Path $LogFile
-								Write-Host "Data Collector Set `"$DCSName`" adding XML-data..."
-								Write-Log -Message "Data Collector Set `"$DCSName`" adding XML-data..." -Path $LogFile
-								$PerfMonDataCollectorSet.SetXml($XMLData)
-								If ($? -eq $true) 
-								{
-									Write-Host "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object."
-									Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object." -Path $LogFile
-									Write-Host "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..."
-									Write-Log -Message "Data Collector Set `"$DCSName`" committing data to computer `"$Computer`"..." -Path $LogFile
-									$null = $PerfMonDataCollectorSet.Commit("$DCSName", $Computer, 0x0003)
-									If ($? -eq $true)
-									{
-										Write-Host "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-										Write-Log -Message "Data Collector Set `"$DCSName`" has been added to computer `"$Computer`"." -Level Success -Path $LogFile
-									}
-									Else 
-									{
-										Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-										Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been added to computer `"$Computer`"!" -Level Error -Path $LogFile
-									}
-								}
-								Else 
-								{
-									Write-Host "Error! XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -ForegroundColor Red -BackgroundColor DarkBlue
-									Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -Level Error -Path $LogFile
-								}
-							}
-							Else 
-							{
-								Write-Host "Error! Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-								Write-Log -Message "Can NOT remove Data Collector Set `"$DCSName`" on computer `"$Computer`"!" -Level Error -Path $LogFile
-							}
+							Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been added!" -ForegroundColor Red -BackgroundColor DarkBlue
+							Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been added!" -Level Error -Path $LogFile
 						}
 					}
 					Else 
 					{
-						Write-Host "Data Collector Set `"$DCSName`" has been left on computer `"$Computer`"." -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been left on computer `"$Computer`"." -Level Warning -Path $LogFile
-						Write-Host "Use -Force flag for rewriting Data Collector Set `"$DCSName`"" -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Use -Force flag for rewriting Data Collector Set `"$DCSName`"" -Level Warning -Path $LogFile
+						Write-Host "Error! XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -ForegroundColor Red -BackgroundColor DarkBlue
+						Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -Level Error -Path $LogFile
 					}
 				}
 				Else 
 				{
-					Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
-					Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
-					Write-Host "Trying to connect to computer `"$Computer`"..."
-					Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-					$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
-					If ($? -eq $true) 
-					{
-						Write-Host "Successfully! Connection is established!"
-						Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" will be added."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be added." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" adding..."
-						Write-Log -Message "Data Collector Set `"$DCSName`" adding..." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" adding XML-data..."
-						Write-Log -Message "Data Collector Set `"$DCSName`" adding XML-data..." -Path $LogFile
-						$PerfMonDataCollectorSet.SetXml($XMLData)
-						If ($? -eq $true) 
-						{
-							Write-Host "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object."
-							Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has been added to COM-object." -Path $LogFile
-							Write-Host "Data Collector Set `"$DCSName`" committing data..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" committing data..." -Path $LogFile
-							$null = $PerfMonDataCollectorSet.Commit("$DCSName", $Computer, 0x0003)
-							If ($? -eq $true)
-							{
-								Write-Host "Data Collector Set `"$DCSName`" has been added on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-								Write-Log -Message "Data Collector Set `"$DCSName`" has been added on computer `"$Computer`"." -Level Success -Path $LogFile
-							}
-							Else 
-							{
-								Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been added!" -ForegroundColor Red -BackgroundColor DarkBlue
-								Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been added!" -Level Error -Path $LogFile
-							}
-						}
-						Else 
-						{
-							Write-Host "Error! XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -ForegroundColor Red -BackgroundColor DarkBlue
-							Write-Log -Message "XML-data for Data Collector Set `"$DCSName`" has NOT been added to COM-object!" -Level Error -Path $LogFile
-						}
-					}
-					Else 
-					{
-						Write-Host "Error! Connection is NOT established!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Connection is NOT established!" -Level Error -Path $LogFile
-					}
+					Write-Host "Error! Connection is NOT established!" -ForegroundColor Red -BackgroundColor DarkBlue
+					Write-Log -Message "Connection is NOT established!" -Level Error -Path $LogFile
 				}
 			}
 		}
@@ -799,170 +482,84 @@ function Remove-DataCollectorSet
 			{
 				$Computer = "$env:COMPUTERNAME"
 			}
-			If ([int]::Parse(($(Get-WmiObject Win32_OperatingSystem -ComputerName $Computer).Version).Split("\.")[0]) -ge "10") 
+			$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
+			Write-Host "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..."
+			Write-Log -Message "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..." -Path $LogFile
+			$PerfMonDataCollectorSet.Query($DCSName, $Computer)
+			If ($? -eq $true) 
 			{
-				$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
-				Write-Host "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..."
-				Write-Log -Message "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..." -Path $LogFile
-				$PerfMonDataCollectorSet.Query($DCSName, $Computer)
-				If ($? -eq $true) 
+				Write-Host "Successfully! Connection is established!"
+				Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
+				Write-Host "Data Collector Set `"$DCSName`" was found."
+				Write-Log -Message "Data Collector Set `"$DCSName`" was found." -Path $LogFile
+				Write-Host "Checking Data Collector Set `"$DCSName`" status..."
+				Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
+				If ($PerfMonDataCollectorSet.Status -eq "1") 
 				{
-					Write-Host "Successfully! Connection is established!"
-					Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-					Write-Host "Data Collector Set `"$DCSName`" was found."
-					Write-Log -Message "Data Collector Set `"$DCSName`" was found." -Path $LogFile
-					Write-Host "Checking Data Collector Set `"$DCSName`" status..."
-					Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
-					If ($PerfMonDataCollectorSet.Status() -eq "1") 
+					Write-Host "Data Collector Set `"$DCSName`" is working now."
+					Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
+					Write-Host "Data Collector Set `"$DCSName`" will be stopped and then removed."
+					Write-Log -Message "Data Collector Set `"$DCSName`" will be stopped and then removed." -Path $LogFile
+					$PerfMonDataCollectorSet.Stop($false)
+					While ($PerfMonDataCollectorSet.Status -eq "1") 
 					{
-						Write-Host "Data Collector Set `"$DCSName`" is working now."
-						Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" will be stopped and then removed."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be stopped and then removed." -Path $LogFile
-						$PerfMonDataCollectorSet.Stop($false)
-						While ($PerfMonDataCollectorSet.Status() -eq "1") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is stopping..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been stopped."
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" removing..."
-						Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
-						$PerfMonDataCollectorSet.Delete()
-						If ($? -eq $true)
-						{
-							Write-Host "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-							Write-Log -Message "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -Level Success -Path $LogFile
-						}
-						Else 
-						{
-							Write-Host "Error! Can NOT remove Data Collector Set `"$DCSName`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-							Write-Log -Message "Can NOT remove Data Collector Set `"$DCSName`"!" -Level Error -Path $LogFile
-						}
+						Start-Sleep -Milliseconds 500
+						Write-Host "Data Collector Set `"$DCSName`" is stopping..."
+						Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
+					}
+					Write-Host "Data Collector Set `"$DCSName`" has been stopped."
+					Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped." -Path $LogFile
+					Write-Host "Data Collector Set `"$DCSName`" removing..."
+					Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
+					$PerfMonDataCollectorSet.Delete()
+					If ($? -eq $true)
+					{
+						Write-Host "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
+						Write-Log -Message "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -Level Success -Path $LogFile
 					}
 					Else 
 					{
-						Write-Host "Data Collector Set `"$DCSName`" removing..."
-						Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
-						$PerfMonDataCollectorSet.Delete()
-						If ($? -eq $true)
-						{
-							Write-Host "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-							Write-Log -Message "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -Level Success -Path $LogFile
-						}
-						Else 
-						{
-							Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been removed on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-							Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been removed on computer `"$Computer`"!" -Level Error -Path $LogFile
-						}
+						Write-Host "Error! Can NOT remove Data Collector Set `"$DCSName`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+						Write-Log -Message "Can NOT remove Data Collector Set `"$DCSName`"!" -Level Error -Path $LogFile
 					}
 				}
 				Else 
 				{
-					Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -ForegroundColor Yellow -BackgroundColor DarkBlue
-					Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
-					Write-Host "Trying to connect to computer `"$Computer`"..."
-					Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-					$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
-					If ($? -eq $true) 
+					Write-Host "Data Collector Set `"$DCSName`" removing..."
+					Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
+					$PerfMonDataCollectorSet.Delete()
+					If ($? -eq $true)
 					{
-						Write-Host "Successfully! Connection is established!"
-						Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-						Write-Host "Check the Data Collector Set name!" -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Check the Data Collector Set name!" -Level Warning -Path $LogFile
-						Write-Host "Error! Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -Level Error -Path $LogFile
+						Write-Host "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
+						Write-Log -Message "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -Level Success -Path $LogFile
 					}
 					Else 
 					{
-						Write-Host "Error! Connection is NOT established with computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Connection is NOT established with computer `"$Computer`"!" -Level Error -Path $LogFile
+						Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been removed on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+						Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been removed on computer `"$Computer`"!" -Level Error -Path $LogFile
 					}
 				}
 			}
 			Else 
 			{
-				$PerfMonDataCollectorSet = New-Object -ComObject Pla.DataCollectorSet
-				Write-Host "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..."
-				Write-Log -Message "Trying to find Data Collector Set `"$DCSName`" on computer `"$Computer`"..." -Path $LogFile
-				$PerfMonDataCollectorSet.Query($DCSName, $Computer)
+				Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
+				Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
+				Write-Host "Trying to connect to computer `"$Computer`"..."
+				Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
+				$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
 				If ($? -eq $true) 
 				{
 					Write-Host "Successfully! Connection is established!"
 					Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-					Write-Host "Data Collector Set `"$DCSName`" was found."
-					Write-Log -Message "Data Collector Set `"$DCSName`" was found." -Path $LogFile
-					Write-Host "Checking Data Collector Set `"$DCSName`" status..."
-					Write-Log -Message "Checking Data Collector Set `"$DCSName`" status..." -Path $LogFile
-					If ($PerfMonDataCollectorSet.Status -eq "1") 
-					{
-						Write-Host "Data Collector Set `"$DCSName`" is working now."
-						Write-Log -Message "Data Collector Set `"$DCSName`" is working now." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" will be stopped and then removed."
-						Write-Log -Message "Data Collector Set `"$DCSName`" will be stopped and then removed." -Path $LogFile
-						$PerfMonDataCollectorSet.Stop($false)
-						While ($PerfMonDataCollectorSet.Status -eq "1") 
-						{
-							Start-Sleep -Milliseconds 500
-							Write-Host "Data Collector Set `"$DCSName`" is stopping..."
-							Write-Log -Message "Data Collector Set `"$DCSName`" is stopping..." -Path $LogFile
-						}
-						Write-Host "Data Collector Set `"$DCSName`" has been stopped."
-						Write-Log -Message "Data Collector Set `"$DCSName`" has been stopped." -Path $LogFile
-						Write-Host "Data Collector Set `"$DCSName`" removing..."
-						Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
-						$PerfMonDataCollectorSet.Delete()
-						If ($? -eq $true)
-						{
-							Write-Host "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-							Write-Log -Message "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -Level Success -Path $LogFile
-						}
-						Else 
-						{
-							Write-Host "Error! Can NOT remove Data Collector Set `"$DCSName`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-							Write-Log -Message "Can NOT remove Data Collector Set `"$DCSName`"!" -Level Error -Path $LogFile
-						}
-					}
-					Else 
-					{
-						Write-Host "Data Collector Set `"$DCSName`" removing..."
-						Write-Log -Message "Data Collector Set `"$DCSName`" removing..." -Path $LogFile
-						$PerfMonDataCollectorSet.Delete()
-						If ($? -eq $true)
-						{
-							Write-Host "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -ForegroundColor Green -BackgroundColor DarkBlue
-							Write-Log -Message "Data Collector Set `"$DCSName`" has been removed on computer `"$Computer`"." -Level Success -Path $LogFile
-						}
-						Else 
-						{
-							Write-Host "Error! Data Collector Set `"$DCSName`" has NOT been removed on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-							Write-Log -Message "Data Collector Set `"$DCSName`" has NOT been removed on computer `"$Computer`"!" -Level Error -Path $LogFile
-						}
-					}
+					Write-Host "Check the Data Collector Set name!" -ForegroundColor Yellow -BackgroundColor DarkBlue
+					Write-Log -Message "Check the Data Collector Set name!" -Level Warning -Path $LogFile
+					Write-Host "Error! Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+					Write-Log -Message "Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -Level Error -Path $LogFile
 				}
 				Else 
 				{
-					Write-Host "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!"  -ForegroundColor Yellow -BackgroundColor DarkBlue
-					Write-Log -Message "Data Collector Set `"$DCSName`" is not found or Connection is not established with computer `"$Computer`"!" -Level Warning -Path $LogFile
-					Write-Host "Trying to connect to computer `"$Computer`"..."
-					Write-Log -Message "Trying to connect to computer `"$Computer`"..." -Path $LogFile
-					$PerfMonDataCollectorSet.Query("System\System Diagnostics", $Computer)
-					If ($? -eq $true) 
-					{
-						Write-Host "Successfully! Connection is established!"
-						Write-Log -Message "Successfully! Connection is established!" -Path $LogFile
-						Write-Host "Check the Data Collector Set name!" -ForegroundColor Yellow -BackgroundColor DarkBlue
-						Write-Log -Message "Check the Data Collector Set name!" -Level Warning -Path $LogFile
-						Write-Host "Error! Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Probably Data Collector Set `"$DCSName`" is not presented on computer `"$Computer`"!" -Level Error -Path $LogFile
-					}
-					Else 
-					{
-						Write-Host "Error! Connection is NOT established with computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
-						Write-Log -Message "Connection is NOT established with computer `"$Computer`"!" -Level Error -Path $LogFile
-					}
+					Write-Host "Error! Connection is NOT established with computer `"$Computer`"!" -ForegroundColor Red -BackgroundColor DarkBlue
+					Write-Log -Message "Connection is NOT established with computer `"$Computer`"!" -Level Error -Path $LogFile
 				}
 			}
 		}
